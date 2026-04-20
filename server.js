@@ -1,8 +1,10 @@
+import express from "express";
 import cors from "cors";
 
-app.use(cors({
-  origin: "https://www.rendure.store"
-}));
+const app = express();
+
+app.use(cors());
+app.use(express.json());
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
