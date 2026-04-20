@@ -1,31 +1,25 @@
-import express from "express";
-import cors from "cors";
 
-const app = express();
-
-app.use(cors());
-app.use(express.json());
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-const app = express(); // ✅ FIRST create app
+const app = express();
 
 // ✅ Middleware
-app.use(cors()); // allow all (fix CORS instantly)
+app.use(cors()); // allow all origins
 app.use(express.json());
 
 // ✅ Serve images
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-// ✅ Orders storage
+// ✅ In-memory storage
 let orders = [];
 
 // ✅ Products
 const products = [
   {
     id: 1,
-    name: "batsuit",
+    name: "Batsuit",
     price: 1000,
     image: "https://rendure-backend.onrender.com/images/sp1.jpg",
   },
@@ -58,7 +52,7 @@ app.post("/api/orders", (req, res) => {
 
   orders.push(order);
 
-  console.log("🧾 New order received:", order);
+  console.log("🧾 New order:", order);
 
   res.status(201).json({
     success: true,
@@ -76,3 +70,4 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
