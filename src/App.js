@@ -55,13 +55,21 @@ export default function StoreStarter() {
 
   // FETCH PRODUCTS
   useEffect(() => {
-    fetch("https://rendure-backend.onrender.com/api/products")
-      .then(res => res.json())
-      .then(data => {
-        setBackendProducts(data);
-        setLoading(false);
-      });
-  }, []);
+  fetch("https://rendure-backend.onrender.com/api/products")
+    .then(res => {
+      if (!res.ok) throw new Error("API failed");
+      return res.json();
+    })
+    .then(data => {
+      console.log("Products:", data); // 👈 DEBUG
+      setBackendProducts(data);
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error("Fetch error:", err);
+      setLoading(false);
+    });
+}, []);
 
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.qty,
