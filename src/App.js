@@ -15,13 +15,28 @@ export default function StoreStarter() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
 
-  const [checkoutData, setCheckoutData] = useState({
+ const [checkoutData, setCheckoutData] = useState({
+  name: "",
+  email: "",
+  phone: "",
+  country: "",
+  city: "",
+  address: "",
+});
+  
+function resetCheckout() {
+  setCart([]);
+  setCheckoutData({
     name: "",
     email: "",
+    phone: "",
     country: "",
+    city: "",
     address: "",
   });
-
+  setShowCheckout(false);
+  setOrderSuccess(false);
+}
   // ✅ Safe localStorage load
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -52,6 +67,7 @@ export default function StoreStarter() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+    
 
   // FETCH PRODUCTS
   useEffect(() => {
@@ -133,37 +149,62 @@ export default function StoreStarter() {
 
     setTimeout(() => flyingImg.remove(), 800);
   }
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
+ 
   async function handlePlaceOrder(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    await fetch("https://onebackend-xlo8.onrender.com/api/orders", {
+  if (cart.length === 0) {
+    alert("Cart is empty");
+    return;
+  }
+
+  if (
+    !checkoutData.name ||
+    !checkoutData.email ||
+    !checkoutData.phone ||
+    !checkoutData.country ||
+    !checkoutData.city ||
+    !checkoutData.address
+  ) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  setIsPlacingOrder(true);
+
+  try {
+    const res = await fetch("https://onebackend-xlo8.onrender.com/api/orders", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         customer: checkoutData,
         items: cart,
-        total: subtotal
-      })
+        total: subtotal,
+      }),
     });
+
+    if (!res.ok) {
+      throw new Error("Order failed");
+    }
+
+    const data = await res.json();
 
     setOrderSuccess(true);
     setShowCheckout(false);
     setCart([]);
-  }
+    setIsCartOpen(false);
 
-  function resetCheckout() {
-    setCart([]);
-    setCheckoutData({
-      name: "",
-      email: "",
-      country: "",
-      address: "",
-    });
-    setShowCheckout(false);
-    setOrderSuccess(false);
+  } catch (err) {
+    console.error(err);
+    alert("❌ Failed to place order");
+  } finally {
+    setIsPlacingOrder(false);
   }
-   
+}
+
+
   return (
     <div className="app">
 
@@ -225,27 +266,107 @@ export default function StoreStarter() {
     </button>
   </div>
 </div>
-      {/* CHECKOUT */}
-      {showCheckout && (
-        <form onSubmit={handlePlaceOrder}>
-          <input placeholder="Name"
-            onChange={e => setCheckoutData({...checkoutData, name: e.target.value})}/>
-          <input placeholder="Email"
-            onChange={e => setCheckoutData({...checkoutData, email: e.target.value})}/>
-          <input placeholder="Country"
-            onChange={e => setCheckoutData({...checkoutData, country: e.target.value})}/>
 
-          <button type="submit">Place Order</button>
-        </form>
-      )}
+{/* CHECKOUT */}
+{showCheckout && (
+  <div className="checkout-modal">
+    <div className="checkout-box">
+      <h2>Checkout</h2>
+
+      <form className="checkout-form" onSubmit={handlePlaceOrder}>
+        
+        <input
+          placeholder="Full Name"
+          required
+          onChange={e =>
+            setCheckoutData({ ...checkoutData, name: e.target.value })
+          }
+        />
+
+        <input
+          type="email"
+          placeholder="Email"
+          required
+          onChange={e =>
+            setCheckoutData({ ...checkoutData, email: e.target.value })
+          }
+        />
+
+        <input
+          placeholder="Phone Number"
+          required
+          onChange={e =>
+            setCheckoutData({ ...checkoutData, phone: e.target.value })
+          }
+        />
+
+        <input
+          placeholder="Country"
+          required
+          onChange={e =>
+            setCheckoutData({ ...checkoutData, country: e.target.value })
+          }
+        />
+
+        <input
+          placeholder="City"
+          required
+          onChange={e =>
+            setCheckoutData({ ...checkoutData, city: e.target.value })
+          }
+        />
+
+        <input
+          placeholder="Address"
+          required
+          onChange={e =>
+            setCheckoutData({ ...checkoutData, address: e.target.value })
+          }
+        />
+
+        <h3>Order Summary</h3>
+
+        {cart.map(item => (
+          <div key={item.id} className="summary-item">
+            <span>{item.name} x {item.qty}</span>
+            <span>${item.price * item.qty}</span>
+          </div>
+        ))}
+
+        <div className="summary-total">
+          <strong>Total:</strong>
+          <strong>${subtotal.toFixed(2)}</strong>
+        </div>
+        <button
+  className="place-order-btn"
+  type="submit"
+  disabled={isPlacingOrder}
+>
+  {isPlacingOrder ? "Placing..." : "Place Order"}
+</button>
+
+        <button
+          type="button"
+          className="back-btn"
+          onClick={() => setShowCheckout(false)}
+        >
+          Cancel
+        </button>
+
+      </form>
+    </div>
+  </div>
+)}
 
       {/* SUCCESS */}
-      {orderSuccess && (
-        <div>
-          <h2>Order Placed 🎉</h2>
-          <button onClick={resetCheckout}>Back</button>
-        </div>
-      )}
+
+       {orderSuccess && (
+  <div className="checkout-box">
+    <h2>✅ Order Confirmed</h2>
+    <p>Thank you for your purchase!</p>
+    <button onClick={resetCheckout}>Back to Store</button>
+  </div>
+)}
 
      {/* PRODUCTS */}
 <main className="container">
