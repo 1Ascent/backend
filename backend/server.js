@@ -21,13 +21,13 @@ const products = [
     id: 1,
     name: "Batsuit",
     price: 1000,
-    image: "https://onebackend-xlo8.onrender.com.onrender.com/images/sp1.jpg",
+    image: "https://onebackend-xlo8.onrender.com./images/sp1.jpg",
   },
   {
     id: 2,
     name: "Spider Mask",
     price: 100,
-    image: "https://onebackend-xlo8.onrender.com.com/images/sp2.jpg",
+    image: "https://onebackend-xlo8.onrender.com/images/sp2.jpg",
   },
 ];
 
