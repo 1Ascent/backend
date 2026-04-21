@@ -169,7 +169,7 @@ export default function StoreStarter() {
 
       {/* NAVBAR */}
       <header className={`nav ${hideNav ? "nav-hidden" : ""}`}>
-        <h1 className="brand">My Store</h1>
+        <h1 className="brand">Rendure Store</h1>
 
         <div className="cart-info">
           <FontAwesomeIcon
@@ -202,19 +202,20 @@ export default function StoreStarter() {
     ) : (
       cart.map(item => (
         <div key={item.id} className="cart-item">
-          <span>{item.name} x {item.qty}</span>
-          <div>
-            <button onClick={() => increaseQty(item.id)}>+</button>
-            <button onClick={() => decreaseQty(item.id)}>-</button>
-          </div>
+          <span>{item.name}</span>
+       <div className="cart-qty">
+       <button onClick={() => decreaseQty(item.id)}>-</button>
+       <span>{item.qty}</span>
+       <button onClick={() => increaseQty(item.id)}>+</button>
+</div>
         </div>
       ))
     )}
   </div>
 
   <div className="cart-footer">
-    <p>Total: ${subtotal.toFixed(2)}</p>
-    <button
+    <p className="total-amt">Total: ${subtotal.toFixed(2)}</p>
+    <button className="checkout-btn"
       onClick={() => {
         setIsCartOpen(false);
         setShowCheckout(true);
