@@ -190,30 +190,40 @@ export default function StoreStarter() {
         </video>
       </div>
 
-      {/* CART */}
-      {isCartOpen && (
        <div className={`cart-sidebar ${isCartOpen ? "open" : ""}`}>
-          <button onClick={() => setIsCartOpen(false)}>Close</button>
+  <div className="cart-header">
+    <h2>Your Cart</h2>
+    <button onClick={() => setIsCartOpen(false)}>Close</button>
+  </div>
 
-          {cart.map(item => (
-            <div key={item.id}>
-              {item.name} x {item.qty}
-              <button onClick={() => increaseQty(item.id)}>+</button>
-              <button onClick={() => decreaseQty(item.id)}>-</button>
-            </div>
-          ))}
-
-          <p>Total: ${subtotal.toFixed(2)}</p>
-
-          <button onClick={() => {
-            setIsCartOpen(false);
-            setShowCheckout(true);
-          }}>
-            Checkout
-          </button>
+  <div className="cart-items">
+    {cart.length === 0 ? (
+      <p>Cart is empty</p>
+    ) : (
+      cart.map(item => (
+        <div key={item.id} className="cart-item">
+          <span>{item.name} x {item.qty}</span>
+          <div>
+            <button onClick={() => increaseQty(item.id)}>+</button>
+            <button onClick={() => decreaseQty(item.id)}>-</button>
+          </div>
         </div>
-      )}
+      ))
+    )}
+  </div>
 
+  <div className="cart-footer">
+    <p>Total: ${subtotal.toFixed(2)}</p>
+    <button
+      onClick={() => {
+        setIsCartOpen(false);
+        setShowCheckout(true);
+      }}
+    >
+      Checkout
+    </button>
+  </div>
+</div>
       {/* CHECKOUT */}
       {showCheckout && (
         <form onSubmit={handlePlaceOrder}>
