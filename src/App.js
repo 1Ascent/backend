@@ -55,7 +55,7 @@ export default function StoreStarter() {
 
   // FETCH PRODUCTS
   useEffect(() => {
-  fetch("https://1backend.onrender.com/api/products")
+  fetch("https://onebackend-xlo8.onrender.com/api/products")
     .then(res => {
       if (!res.ok) throw new Error("API failed");
       return res.json();
@@ -137,7 +137,7 @@ export default function StoreStarter() {
   async function handlePlaceOrder(e) {
     e.preventDefault();
 
-    await fetch("https://1backend.onrender.com/api/orders", {
+    await fetch("https://onebackend-xlo8.onrender.com/api/orders", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
