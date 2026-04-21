@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import spidervid from "./assets/images/videos/2.mp4";
@@ -14,19 +13,9 @@ export default function StoreStarter() {
   const [hideNav, setHideNav] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderId, setOrderId] = useState(null);
 
- const [checkoutData, setCheckoutData] = useState({
-  name: "",
-  email: "",
-  phone: "",
-  country: "",
-  city: "",
-  address: "",
-});
-  
-function resetCheckout() {
-  setCart([]);
-  setCheckoutData({
+  const [checkoutData, setCheckoutData] = useState({
     name: "",
     email: "",
     phone: "",
@@ -34,29 +23,39 @@ function resetCheckout() {
     city: "",
     address: "",
   });
-  setShowCheckout(false);
-  setOrderSuccess(false);
-}
-  // ✅ Safe localStorage load
+
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+
+  function resetCheckout() {
+    setCart([]);
+    setCheckoutData({
+      name: "",
+      email: "",
+      phone: "",
+      country: "",
+      city: "",
+      address: "",
+    });
+    setShowCheckout(false);
+    setOrderSuccess(false);
+    setOrderId(null);
+  }
+
+  // Load cart
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedCart = localStorage.getItem("cart");
-      if (savedCart) setCart(JSON.parse(savedCart));
-    }
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) setCart(JSON.parse(savedCart));
   }, []);
 
-  // ✅ Save cart
+  // Save cart
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    }
+    localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // NAV SCROLL
+  // Navbar scroll
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
     let lastScrollY = window.scrollY;
+
     const handleScroll = () => {
       const current = window.scrollY;
       if (current > lastScrollY + 5) setHideNav(true);
@@ -67,25 +66,23 @@ function resetCheckout() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-    
 
-  // FETCH PRODUCTS
+  // Fetch products
   useEffect(() => {
-  fetch("https://onebackend-xlo8.onrender.com/api/products")
-    .then(res => {
-      if (!res.ok) throw new Error("API failed");
-      return res.json();
-    })
-    .then(data => {
-      console.log("Products:", data); // 👈 DEBUG
-      setBackendProducts(data);
-      setLoading(false);
-    })
-    .catch(err => {
-      console.error("Fetch error:", err);
-      setLoading(false);
-    });
-}, []);
+    fetch("https://onebackend-xlo8.onrender.com/api/products")
+      .then(res => {
+        if (!res.ok) throw new Error("API failed");
+        return res.json();
+      })
+      .then(data => {
+        setBackendProducts(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.qty,
@@ -125,7 +122,7 @@ function resetCheckout() {
   }
 
   function animateFlyToCart(imgElement) {
-    if (!imgElement || typeof window === "undefined") return;
+    if (!imgElement) return;
 
     const imgRect = imgElement.getBoundingClientRect();
     const cartIcon = document.getElementById("cart-icon");
@@ -149,61 +146,57 @@ function resetCheckout() {
 
     setTimeout(() => flyingImg.remove(), 800);
   }
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
- 
   async function handlePlaceOrder(e) {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (cart.length === 0) {
-    alert("Cart is empty");
-    return;
-  }
-
-  if (
-    !checkoutData.name ||
-    !checkoutData.email ||
-    !checkoutData.phone ||
-    !checkoutData.country ||
-    !checkoutData.city ||
-    !checkoutData.address
-  ) {
-    alert("Please fill all fields");
-    return;
-  }
-
-  setIsPlacingOrder(true);
-
-  try {
-    const res = await fetch("https://onebackend-xlo8.onrender.com/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        customer: checkoutData,
-        items: cart,
-        total: subtotal,
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error("Order failed");
+    if (cart.length === 0) {
+      alert("Cart is empty");
+      return;
     }
 
-    const data = await res.json();
+    if (
+      !checkoutData.name ||
+      !checkoutData.email ||
+      !checkoutData.phone ||
+      !checkoutData.country ||
+      !checkoutData.city ||
+      !checkoutData.address
+    ) {
+      alert("Please fill all fields");
+      return;
+    }
 
-    setOrderSuccess(true);
-    setShowCheckout(false);
-    setCart([]);
-    setIsCartOpen(false);
+    setIsPlacingOrder(true);
 
-  } catch (err) {
-    console.error(err);
-    alert("❌ Failed to place order");
-  } finally {
-    setIsPlacingOrder(false);
+    try {
+      const res = await fetch("https://onebackend-xlo8.onrender.com/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: checkoutData,
+          items: cart,
+          total: subtotal,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Order failed");
+
+      const data = await res.json();
+
+      setOrderId(data.orderId);
+      setOrderSuccess(true);
+      setShowCheckout(false);
+      setCart([]);
+      setIsCartOpen(false);
+
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to place order");
+    } finally {
+      setIsPlacingOrder(false);
+    }
   }
-}
-
 
   return (
     <div className="app">
@@ -231,177 +224,136 @@ function resetCheckout() {
         </video>
       </div>
 
-       <div className={`cart-sidebar ${isCartOpen ? "open" : ""}`}>
-  <div className="cart-header">
-    <h2>Your Cart</h2>
-    <button onClick={() => setIsCartOpen(false)}>Close</button>
-  </div>
-
-  <div className="cart-items">
-    {cart.length === 0 ? (
-      <p>Cart is empty</p>
-    ) : (
-      cart.map(item => (
-        <div key={item.id} className="cart-item">
-          <span>{item.name}</span>
-       <div className="cart-qty">
-       <button onClick={() => decreaseQty(item.id)}>-</button>
-       <span>{item.qty}</span>
-       <button onClick={() => increaseQty(item.id)}>+</button>
-</div>
+      {/* CART */}
+      <div className={`cart-sidebar ${isCartOpen ? "open" : ""}`}>
+        <div className="cart-header">
+          <h2>Your Cart</h2>
+          <button onClick={() => setIsCartOpen(false)}>Close</button>
         </div>
-      ))
-    )}
-  </div>
 
-  <div className="cart-footer">
-    <p className="total-amt">Total: ${subtotal.toFixed(2)}</p>
-    <button className="checkout-btn"
-      onClick={() => {
-        setIsCartOpen(false);
-        setShowCheckout(true);
-      }}
-    >
-      Checkout
-    </button>
-  </div>
-</div>
-
-{/* CHECKOUT */}
-{showCheckout && (
-  <div className="checkout-modal">
-    <div className="checkout-box">
-      <h2>Checkout</h2>
-
-      <form className="checkout-form" onSubmit={handlePlaceOrder}>
-        
-        <input
-          placeholder="Full Name"
-          required
-          onChange={e =>
-            setCheckoutData({ ...checkoutData, name: e.target.value })
-          }
-        />
-
-        <input
-          type="email"
-          placeholder="Email"
-          required
-          onChange={e =>
-            setCheckoutData({ ...checkoutData, email: e.target.value })
-          }
-        />
-
-        <input
-          placeholder="Phone Number"
-          required
-          onChange={e =>
-            setCheckoutData({ ...checkoutData, phone: e.target.value })
-          }
-        />
-
-        <input
-          placeholder="Country"
-          required
-          onChange={e =>
-            setCheckoutData({ ...checkoutData, country: e.target.value })
-          }
-        />
-
-        <input
-          placeholder="City"
-          required
-          onChange={e =>
-            setCheckoutData({ ...checkoutData, city: e.target.value })
-          }
-        />
-
-        <input
-          placeholder="Address"
-          required
-          onChange={e =>
-            setCheckoutData({ ...checkoutData, address: e.target.value })
-          }
-        />
-
-        <h3>Order Summary</h3>
-
-        {cart.map(item => (
-          <div key={item.id} className="summary-item">
-            <span>{item.name} x {item.qty}</span>
-            <span>${item.price * item.qty}</span>
-          </div>
-        ))}
-
-        <div className="summary-total">
-          <strong>Total:</strong>
-          <strong>${subtotal.toFixed(2)}</strong>
+        <div className="cart-items">
+          {cart.length === 0 ? (
+            <p>Cart is empty</p>
+          ) : (
+            cart.map(item => (
+              <div key={item.id} className="cart-item">
+                <span>{item.name}</span>
+                <div className="cart-qty">
+                  <button onClick={() => decreaseQty(item.id)}>-</button>
+                  <span>{item.qty}</span>
+                  <button onClick={() => increaseQty(item.id)}>+</button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
-        <button
-  className="place-order-btn"
-  type="submit"
-  disabled={isPlacingOrder}
->
-  {isPlacingOrder ? "Placing..." : "Place Order"}
-</button>
 
-        <button
-          type="button"
-          className="back-btn"
-          onClick={() => setShowCheckout(false)}
-        >
-          Cancel
-        </button>
-
-      </form>
-    </div>
-  </div>
-)}
-
-      {/* SUCCESS */}
-
-       {orderSuccess && (
-  <div className="checkout-box">
-    <h2>✅ Order Confirmed</h2>
-    <p>Thank you for your purchase!</p>
-    <button onClick={resetCheckout}>Back to Store</button>
-  </div>
-)}
-
-     {/* PRODUCTS */}
-<main className="container">
-  {loading && <p>Loading...</p>}
-
-  <div className="products">
-    {backendProducts.map(product => {
-
-      console.log("IMAGE URL:", product.image); // ✅ DEBUG HERE
-
-      return (
-        <div key={product.id} className="card">
-          <img
-  src={`https://onebackend-xlo8.onrender.com/images/${product.image.split('/').pop()}`}
-  alt={product.name}
-/>
-
-          <h3>{product.name}</h3>
-          <p>${product.price}</p>
-
+        <div className="cart-footer">
+          <p className="total-amt">Total: ${subtotal.toFixed(2)}</p>
           <button
-            onClick={(e) => {
-              const img = e.target.closest(".card").querySelector("img");
-              addToCart(product, img);
+            className="checkout-btn"
+            onClick={() => {
+              setIsCartOpen(false);
+              setShowCheckout(true);
             }}
           >
-            Add to Cart
+            Checkout
           </button>
         </div>
-      );
-    })}
-  </div>
-</main>
+      </div>
+
+      {/* CHECKOUT */}
+      {showCheckout && (
+        <div className="checkout-modal">
+          <div className="checkout-box">
+            <h2>Checkout</h2>
+
+            <form className="checkout-form" onSubmit={handlePlaceOrder}>
+              {["name","email","phone","country","city","address"].map(field => (
+                <input
+                  key={field}
+                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                  required
+                  onChange={e =>
+                    setCheckoutData({ ...checkoutData, [field]: e.target.value })
+                  }
+                />
+              ))}
+
+              <h3>Order Summary</h3>
+
+              {cart.map(item => (
+                <div key={item.id} className="summary-item">
+                  <span>{item.name} x {item.qty}</span>
+                  <span>${item.price * item.qty}</span>
+                </div>
+              ))}
+
+              <div className="summary-total">
+                <strong>Total:</strong>
+                <strong>${subtotal.toFixed(2)}</strong>
+              </div>
+
+              <button
+                className="place-order-btn"
+                type="submit"
+                disabled={isPlacingOrder}
+              >
+                {isPlacingOrder ? "Placing..." : "Place Order"}
+              </button>
+
+              <button
+                type="button"
+                className="back-btn"
+                onClick={() => setShowCheckout(false)}
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* SUCCESS */}
+      {orderSuccess && (
+        <div className="checkout-modal">
+          <div className="checkout-box">
+            <h2>✅ Order Confirmed</h2>
+            <p>Thank you for your purchase!</p>
+            <p><strong>Order ID:</strong> {orderId}</p>
+            <button onClick={resetCheckout}>Back to Store</button>
+          </div>
+        </div>
+      )}
+
+      {/* PRODUCTS */}
+      <main className="container">
+        {loading && <p>Loading...</p>}
+
+        <div className="products">
+          {backendProducts.map(product => (
+            <div key={product.id} className="card">
+              <img
+                src={`https://onebackend-xlo8.onrender.com/images/${product.image.split('/').pop()}`}
+                alt={product.name}
+              />
+
+              <h3>{product.name}</h3>
+              <p>${product.price}</p>
+
+              <button
+                onClick={(e) => {
+                  const img = e.target.closest(".card").querySelector("img");
+                  addToCart(product, img);
+                }}
+              >
+                Add to Cart
+              </button>
+            </div>
+          ))}
+        </div>
+      </main>
 
     </div>
   );
 }
-
