@@ -163,7 +163,7 @@ export default function StoreStarter() {
     setShowCheckout(false);
     setOrderSuccess(false);
   }
-
+   
   return (
     <div className="app">
 
@@ -236,30 +236,38 @@ export default function StoreStarter() {
         </div>
       )}
 
-      {/* PRODUCTS */}
-      <main className="container">
-        {loading && <p>Loading...</p>}
+     {/* PRODUCTS */}
+<main className="container">
+  {loading && <p>Loading...</p>}
 
-        <div className="products">
-          {backendProducts.map(product => (
-            <div key={product.id} className="card">
-              <img src={product.image} alt={product.name} />
+  <div className="products">
+    {backendProducts.map(product => {
 
-              <h3>{product.name}</h3>
-              <p>${product.price}</p>
+      console.log("IMAGE URL:", product.image); // ✅ DEBUG HERE
 
-              <button
-                onClick={(e) => {
-                  const img = e.target.closest(".card").querySelector("img");
-                  addToCart(product, img);
-                }}
-              >
-                Add to Cart
-              </button>
-            </div>
-          ))}
+      return (
+        <div key={product.id} className="card">
+          <img
+  src={`https://onebackend-xlo8.onrender.com/images/${product.image.split('/').pop()}`}
+  alt={product.name}
+/>
+
+          <h3>{product.name}</h3>
+          <p>${product.price}</p>
+
+          <button
+            onClick={(e) => {
+              const img = e.target.closest(".card").querySelector("img");
+              addToCart(product, img);
+            }}
+          >
+            Add to Cart
+          </button>
         </div>
-      </main>
+      );
+    })}
+  </div>
+</main>
 
     </div>
   );
