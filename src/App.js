@@ -192,7 +192,7 @@ export default function StoreStarter() {
 
       {/* CART */}
       {isCartOpen && (
-        <div className="cart-sidebar">
+       <div className={`cart-sidebar ${isCartOpen ? "open" : ""}`}>
           <button onClick={() => setIsCartOpen(false)}>Close</button>
 
           {cart.map(item => (
