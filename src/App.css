@@ -1062,9 +1062,9 @@ body {
   gap: 8px;
   padding: 8px 14px;
   background: transparent;
-  border: 1px solid #fff;
+  border: 1px solid #000000;
   border-radius: 20px;
-  color: #fff;
+  color: #000000;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.3s ease;
