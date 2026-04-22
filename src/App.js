@@ -3,7 +3,7 @@ import "./App.css";
 import spidervid from "./assets/images/videos/2.mp4";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingBag } from "@fortawesome/free-solid-svg-icons";
-
+import { faUser } from "@fortawesome/free-solid-svg-icons";
 export default function StoreStarter() {
 
   const [backendProducts, setBackendProducts] = useState([]);
@@ -14,6 +14,55 @@ export default function StoreStarter() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderId, setOrderId] = useState(null);
+
+    const [showAuth, setShowAuth] = useState(false);
+const [isLogin, setIsLogin] = useState(true);
+
+
+const [authData, setAuthData] = useState({
+  name: "",
+  email: "",
+  password: "",
+});
+
+  const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3001"
+    : "https://onebackend-xlo8.onrender.com";
+
+  async function handleAuth(e) {
+  e.preventDefault();
+
+  const url = isLogin
+    ? `${API_URL}/api/login`
+    : `${API_URL}/api/register`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(authData),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Error");
+
+    if (isLogin) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId);
+      alert("✅ Logged in!");
+      setShowAuth(false);
+    } else {
+      alert("✅ Registered! Now login.");
+      setIsLogin(true);
+    }
+
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+}
+
 
   const [checkoutData, setCheckoutData] = useState({
     name: "",
@@ -68,21 +117,19 @@ export default function StoreStarter() {
   }, []);
 
   // Fetch products
+ 
   useEffect(() => {
-    fetch("https://onebackend-xlo8.onrender.com/api/products")
-      .then(res => {
-        if (!res.ok) throw new Error("API failed");
-        return res.json();
-      })
-      .then(data => {
-        setBackendProducts(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
+  fetch(`${API_URL}/api/products`)
+    .then(res => res.json())
+    .then(data => {
+      setBackendProducts(data);
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error("Fetch error:", err);
+      setLoading(false);
+    });
+}, []);
 
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.qty,
@@ -147,75 +194,119 @@ export default function StoreStarter() {
     setTimeout(() => flyingImg.remove(), 800);
   }
 
-  async function handlePlaceOrder(e) {
-    e.preventDefault();
 
-    if (cart.length === 0) {
-      alert("Cart is empty");
-      return;
-    }
 
-    if (
-      !checkoutData.name ||
-      !checkoutData.email ||
-      !checkoutData.phone ||
-      !checkoutData.country ||
-      !checkoutData.city ||
-      !checkoutData.address
-    ) {
-      alert("Please fill all fields");
-      return;
-    }
+   async function handlePlaceOrder(e) {
+  e.preventDefault();
 
-    setIsPlacingOrder(true);
+  const userId = localStorage.getItem("userId");
 
-    try {
-      const res = await fetch("https://onebackend-xlo8.onrender.com/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer: checkoutData,
-          items: cart,
-          total: subtotal,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Order failed");
-
-      const data = await res.json();
-
-      setOrderId(data.orderId);
-      setOrderSuccess(true);
-      setShowCheckout(false);
-      setCart([]);
-      setIsCartOpen(false);
-
-    } catch (err) {
-      console.error(err);
-      alert("❌ Failed to place order");
-    } finally {
-      setIsPlacingOrder(false);
-    }
+  if (!userId) {
+    alert("Please login first");
+    setShowAuth(true);
+    return;
   }
 
+  if (cart.length === 0) {
+    alert("Cart is empty");
+    return;
+  }
+
+  if (
+    !checkoutData.name ||
+    !checkoutData.email ||
+    !checkoutData.phone ||
+    !checkoutData.country ||
+    !checkoutData.city ||
+    !checkoutData.address
+  ) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  setIsPlacingOrder(true);
+
+  try {
+    const res = await fetch(`${API_URL}/api/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        customer: checkoutData,
+        items: cart,
+        total: subtotal,
+      }),
+    });
+
+    if (!res.ok) throw new Error("Order failed");
+
+    const data = await res.json();
+
+    setOrderId(data.orderId);
+    setOrderSuccess(true);
+    setShowCheckout(false);
+    setCart([]);
+    setIsCartOpen(false);
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Failed to place order");
+  } finally {
+    setIsPlacingOrder(false);
+  }
+}
+
+
+
   return (
+
+   
+
     <div className="app">
 
       {/* NAVBAR */}
-      <header className={`nav ${hideNav ? "nav-hidden" : ""}`}>
-        <h1 className="brand">Rendure Store</h1>
+      
+    <header className={`nav ${hideNav ? "nav-hidden" : ""}`}>
+  <h1 className="brand">Rendure Store</h1>
 
-        <div className="cart-info">
-          <FontAwesomeIcon
-            icon={faShoppingBag}
-            id="cart-icon"
-            onClick={() => setIsCartOpen(true)}
-          />
-          {cart.length > 0 && (
-            <span className="cart-count">{cart.length}</span>
-          )}
-        </div>
-      </header>
+  
+ 
+ {localStorage.getItem("userId") ? (
+  <button
+    className="auth-btn"
+    onClick={() => {
+      localStorage.removeItem("userId");
+      localStorage.removeItem("token");
+      alert("Logged out");
+      window.location.reload();
+    }}
+  >
+    <FontAwesomeIcon icon={faUser} />
+    Logout
+  </button>
+) : (
+  <button className="auth-btn" onClick={() => setShowAuth(true)}>
+    <FontAwesomeIcon icon={faUser} />
+    Login
+  </button>
+)}
+
+
+
+  <div className="cart-info">
+    <FontAwesomeIcon
+      icon={faShoppingBag}
+      id="cart-icon"
+      onClick={() => setIsCartOpen(true)}
+    />
+    {cart.length > 0 && (
+      <span className="cart-count">{cart.length}</span>
+    )}
+  </div>
+</header>
+
+
+
 
       {/* VIDEO */}
       <div className="video-banner">
@@ -252,22 +343,81 @@ export default function StoreStarter() {
           <p className="total-amt">Total: ${subtotal.toFixed(2)}</p>
           <button
             className="checkout-btn"
-            onClick={() => {
-              setIsCartOpen(false);
-              setShowCheckout(true);
-            }}
+          onClick={() => {
+  const userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    alert("Login first");
+    setShowAuth(true);
+    return;
+  }
+
+  setIsCartOpen(false);
+  setShowCheckout(true);
+}}
           >
             Checkout
           </button>
         </div>
       </div>
 
+
+      {showAuth && (
+  <div className="checkout-modal">
+    <div className="checkout-box">
+      <h2>{isLogin ? "Login" : "Register"}</h2>
+
+      <form onSubmit={handleAuth}>
+        
+        {!isLogin && (
+          <input
+            placeholder="Name"
+            onChange={e =>
+              setAuthData({ ...authData, name: e.target.value })
+            }
+          />
+        )}
+
+        <input
+          placeholder="Email"
+          onChange={e =>
+            setAuthData({ ...authData, email: e.target.value })
+          }
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={e =>
+            setAuthData({ ...authData, password: e.target.value })
+          }
+        />
+
+        <button type="submit">
+          {isLogin ? "Login" : "Register"}
+        </button>
+
+        <p onClick={() => setIsLogin(!isLogin)}>
+          {isLogin ? "Register instead" : "Login instead"}
+        </p>
+
+        <button type="button" onClick={() => setShowAuth(false)}>
+          Cancel
+        </button>
+      </form>
+    </div>
+  </div>
+)}
+
+
       {/* CHECKOUT */}
+
+
       {showCheckout && (
         <div className="checkout-modal">
           <div className="checkout-box">
             <h2>Checkout</h2>
-
+            
             <form className="checkout-form" onSubmit={handlePlaceOrder}>
               {["name","email","phone","country","city","address"].map(field => (
                 <input
@@ -278,7 +428,7 @@ export default function StoreStarter() {
                     setCheckoutData({ ...checkoutData, [field]: e.target.value })
                   }
                 />
-              ))}
+              ))}   
 
               <h3>Order Summary</h3>
 
@@ -289,16 +439,21 @@ export default function StoreStarter() {
                 </div>
               ))}
 
+              
+              
+
               <div className="summary-total">
                 <strong>Total:</strong>
                 <strong>${subtotal.toFixed(2)}</strong>
               </div>
+                
 
-              <button
-                className="place-order-btn"
-                type="submit"
-                disabled={isPlacingOrder}
-              >
+            <button
+  className="place-order-btn"
+  type="button"
+  onClick={handlePlaceOrder}
+  disabled={isPlacingOrder}
+>
                 {isPlacingOrder ? "Placing..." : "Place Order"}
               </button>
 

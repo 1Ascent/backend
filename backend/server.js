@@ -5,86 +5,124 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 
 dotenv.config({ path: "./.env" });
-console.log("ENV:", process.env.MONGO_URI);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// ✅ Create app FIRST
+const app = express();
 
+// ✅ Middleware
+app.use(cors());
+app.use(express.json());
+
+// ✅ Mongo connect
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ Mongo Error:", err));
 
+// ✅ Models
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
+});
+const User = mongoose.model("User", userSchema);
 
-
-
-const app = express();
-
-// ✅ Middleware
-app.use(cors()); // allow all origins
-app.use(express.json());
-
-// ✅ Serve images
-app.use("/images", express.static(path.join(__dirname, "images")));
-
-// ✅ In-memory storage
-let orders = [];
-
-// ✅ Products
-const products = [
-  {
-    id: 1,
-    name: "Batsuit",
-    price: 1000,
-    image: "https://onebackend-xlo8.onrender.com./images/sp1.jpg",
+const orderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // ✅ IMPORTANT
+  customer: {
+    name: String,
+    email: String,
+    country: String,
+    address: String,
   },
-  {
-    id: 2,
-    name: "Spider Mask",
-    price: 100,
-    image: "https://onebackend-xlo8.onrender.com/images/sp2.jpg",
-  },
-];
+  items: Array,
+  total: Number,
+  status: { type: String, default: "pending" },
+  createdAt: { type: Date, default: Date.now }
+});
+const Order = mongoose.model("Order", orderSchema);
 
-// ✅ Routes
-app.get("/", (req, res) => {
-  res.send("Backend running");
+// ✅ AUTH ROUTES
+app.post("/api/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const user = new User({ name, email, password: hashed });
+    await user.save();
+
+    res.json({ success: true });
+} catch (err) {
+  console.error("Register error:", err);
+  res.status(500).json({ error: err.message });
+}
 });
 
-app.get("/api/products", (req, res) => {
-  res.json(products);
+app.post("/api/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(400).json({ error: "User not found" });
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return res.status(400).json({ error: "Wrong password" });
+
+  const token = jwt.sign({ id: user._id }, "SECRET_KEY");
+
+  res.json({ token, userId: user._id });
 });
 
-app.post("/api/orders", (req, res) => {
-  const order = {
-    id: Date.now(),
-    customer: req.body.customer,
-    items: req.body.items,
-    total: req.body.total,
-    status: "pending",
-    createdAt: new Date(),
-  };
+// ✅ ORDER ROUTE
+app.post("/api/orders", async (req, res) => {
+  try {
+    console.log("📥 Order:", req.body);
 
-  orders.push(order);
+    const newOrder = new Order({
+      userId: req.body.userId, // ✅ link user
+      customer: req.body.customer,
+      items: req.body.items,
+      total: req.body.total,
+    });
 
-  console.log("🧾 New order:", order);
+    const savedOrder = await newOrder.save();
 
-  res.status(201).json({
-    success: true,
-    orderId: order.id,
-  });
+    res.json({ success: true, orderId: savedOrder._id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to save order" });
+  }
 });
 
-app.get("/api/orders", (req, res) => {
+// ✅ GET ORDERS
+app.get("/api/orders", async (req, res) => {
+  const orders = await Order.find();
   res.json(orders);
 });
 
 // ✅ Start server
 const PORT = process.env.PORT || 3001;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
+const products = [
+  {
+    id: 1,
+    name: "Batsuit",
+    price: 1000,
+    image: "sp1.jpg",
+  },
+  {
+    id: 2,
+    name: "Spider Mask",
+    price: 100,
+    image: "sp2.jpg",
+  },
+];
+app.get("/api/products", (req, res) => {
+  res.json(products);
+});
