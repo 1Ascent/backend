@@ -1,15 +1,17 @@
-import path from "path";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import path from "path";
+import { fileURLToPath } from "url";
 
+// ✅ Fix __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: "./.env" });
+dotenv.config();
 
 
 
@@ -17,9 +19,12 @@ dotenv.config({ path: "./.env" });
 const app = express();
 
 app.use(cors({
-  origin: 'https://rendure.store', // Replace with your actual front-end domain
-  methods: ['GET', 'POST'], // Adjust methods as needed
-  credentials: true // If you’re using cookies or authentication tokens
+  origin: [
+    'https://rendure.store',
+    'https://www.rendure.store'
+  ],
+  methods: ['GET', 'POST'],
+  credentials: true
 }));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 // ✅ Middleware
