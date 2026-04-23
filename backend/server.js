@@ -16,7 +16,11 @@ dotenv.config({ path: "./.env" });
 // ✅ Create app FIRST
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://rendure.store ', // Replace with your actual front-end domain
+  methods: ['GET', 'POST'], // Adjust methods as needed
+  credentials: true // If you’re using cookies or authentication tokens
+}));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 // ✅ Middleware
 app.use(express.json());
