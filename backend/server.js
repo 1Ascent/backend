@@ -11,13 +11,14 @@ import jwt from "jsonwebtoken";
 
 dotenv.config({ path: "./.env" });
 
-app.use('/images', express.static(path.join(__dirname, 'images')));
+
 
 // ✅ Create app FIRST
 const app = express();
-
+app.use('/images', express.static(path.join(__dirname, 'images')));
 // ✅ Middleware
 app.use(cors());
+
 app.use(express.json());
 
 // ✅ Mongo connect

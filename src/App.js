@@ -489,7 +489,7 @@ const [authData, setAuthData] = useState({
           {backendProducts.map(product => (
             <div key={product.id} className="card">
               <img
-  src={`https://onebackend-xlo8.onrender.com/backend/images/${product.image}`}
+  src={`https://onebackend-xlo8.onrender.com/images/${product.image}`}
   alt={product.name}
 />
               <h3>{product.name}</h3>
