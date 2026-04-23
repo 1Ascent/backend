@@ -1146,7 +1146,7 @@ body {
   border: 1px solid #fff;
   padding: 6px 12px;
   border-radius: 20px;
-  color: white;
+  color: rgb(17, 14, 14);
   cursor: pointer;
   transition: 0.3s;
 }
