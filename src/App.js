@@ -282,12 +282,10 @@ const [authData, setAuthData] = useState({
     }}
   >
     <FontAwesomeIcon icon={faUser} />
-    Logout
   </button>
 ) : (
   <button className="auth-btn" onClick={() => setShowAuth(true)}>
     <FontAwesomeIcon icon={faUser} />
-    Login
   </button>
 )}
 
