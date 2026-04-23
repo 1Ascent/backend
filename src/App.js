@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+
 import "./App.css";
 import spidervid from "./assets/images/videos/2.mp4";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingBag } from "@fortawesome/free-solid-svg-icons";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
+import { useEffect, useState } from "react";
 export default function StoreStarter() {
-
+   
+  const [showOrders, setShowOrders] = useState(false);
   const [backendProducts, setBackendProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -17,6 +19,45 @@ export default function StoreStarter() {
 
     const [showAuth, setShowAuth] = useState(false);
 const [isLogin, setIsLogin] = useState(true);
+
+
+
+
+function MyOrders() {
+  const [orders, setOrders] = useState([]);
+  const userId = localStorage.getItem("userId");
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/my-orders/${userId}`)
+      .then(res => res.json())
+      .then(data => setOrders(data))
+      .catch(err => console.error(err));
+  }, []);
+
+  return (
+    <div className="orders-page">
+      <h2>My Orders</h2>
+
+      {orders.length === 0 ? (
+        <p>No orders yet</p>
+      ) : (
+        orders.map(order => (
+          <div key={order._id} className="order-card">
+            <p><strong>Order ID:</strong> {order._id}</p>
+            <p><strong>Total:</strong> ${order.total}</p>
+            <p><strong>Status:</strong> {order.status}</p>
+
+            {order.items.map((item, i) => (
+              <div key={i}>
+                {item.name} x {item.qty}
+              </div>
+            ))}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
 
 
 const [authData, setAuthData] = useState({
@@ -289,7 +330,11 @@ const [authData, setAuthData] = useState({
   </button>
 )}
 
-
+   <button onClick={() => setShowOrders(!showOrders)}>
+  My Orders
+</button>
+   
+  
 
   <div className="cart-info">
     <FontAwesomeIcon
@@ -303,7 +348,7 @@ const [authData, setAuthData] = useState({
   </div>
 </header>
 
-
+   {showOrders && <MyOrders />}
 
 
       {/* VIDEO */}

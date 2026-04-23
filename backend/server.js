@@ -142,3 +142,11 @@ app.get("/api/products", (req, res) => {
   res.json(products);
 });
 
+app.get("/api/my-orders/:userId", async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.params.userId });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
