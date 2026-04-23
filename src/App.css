@@ -1069,7 +1069,7 @@ body {
   font-size: 14px;
   transition: all 0.3s ease;
   z-index: 10000;
-  margin-left: 5px;
+  margin-left: -10px;
 }
 
 /* Hover effect */
