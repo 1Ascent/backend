@@ -15,10 +15,10 @@ dotenv.config({ path: "./.env" });
 
 // ✅ Create app FIRST
 const app = express();
+
+app.use(cors());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 // ✅ Middleware
-app.use(cors());
-
 app.use(express.json());
 
 // ✅ Mongo connect
