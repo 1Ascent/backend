@@ -5,41 +5,47 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingBag } from "@fortawesome/free-solid-svg-icons";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
-export default function StoreStarter() {
-   
-  const [showOrders, setShowOrders] = useState(false);
-  const [backendProducts, setBackendProducts] = useState([]);
-  const [cart, setCart] = useState([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [hideNav, setHideNav] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
-  const [orderId, setOrderId] = useState(null);
-
-    const [showAuth, setShowAuth] = useState(false);
-const [isLogin, setIsLogin] = useState(true);
 
 
-
-
-function MyOrders() {
+function MyOrders({ API_URL }) {
   const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
   const userId = localStorage.getItem("userId");
 
+ useEffect(() => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}, []);
+
   useEffect(() => {
+    if (!userId) return;
+
     fetch(`${API_URL}/api/my-orders/${userId}`)
       .then(res => res.json())
-      .then(data => setOrders(data))
-      .catch(err => console.error(err));
-  }, []);
+      .then(data => {
+        setOrders(data);
+        setLoadingOrders(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoadingOrders(false);
+      });
+  }, [API_URL, userId]);
+
+  if (!userId) {
+    return <p style={{ color: "white", padding: "20px" }}>Please login to see your orders</p>;
+  }
 
   return (
     <div className="orders-page">
       <h2>My Orders</h2>
 
-      {orders.length === 0 ? (
-        <p>No orders yet</p>
+      {loadingOrders ? (
+        <p>Loading orders...</p>
+      ) : orders.length === 0 ? (
+       <p style={{ textAlign: "center", color: "#aaa" }}>
+  You haven’t placed any orders yet 🛒
+</p>
       ) : (
         orders.map(order => (
           <div key={order._id} className="order-card">
@@ -58,6 +64,27 @@ function MyOrders() {
     </div>
   );
 }
+
+
+export default function StoreStarter() {
+   
+  const [showOrders, setShowOrders] = useState(false);
+  const [backendProducts, setBackendProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [hideNav, setHideNav] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderId, setOrderId] = useState(null);
+
+    const [showAuth, setShowAuth] = useState(false);
+ const [isLogin, setIsLogin] = useState(true);
+
+
+
+
+
 
 
 const [authData, setAuthData] = useState({
@@ -330,10 +357,10 @@ const [authData, setAuthData] = useState({
   </button>
 )}
 
-   <button onClick={() => setShowOrders(!showOrders)}>
-  My Orders
+
+  <button onClick={() => setShowOrders(!showOrders)}>
+  {showOrders ? "Back to Store" : "My Orders"}
 </button>
-   
   
 
   <div className="cart-info">
@@ -348,15 +375,13 @@ const [authData, setAuthData] = useState({
   </div>
 </header>
 
-   {showOrders && <MyOrders />}
+ {showOrders && (
+  <div className="fade-page">
+    <MyOrders API_URL={API_URL} />
+  </div>
+)}
 
 
-      {/* VIDEO */}
-      <div className="video-banner">
-        <video autoPlay muted loop playsInline>
-          <source src={spidervid} type="video/mp4" />
-        </video>
-      </div>
 
       {/* CART */}
       <div className={`cart-sidebar ${isCartOpen ? "open" : ""}`}>
@@ -524,32 +549,50 @@ const [authData, setAuthData] = useState({
         </div>
       )}
 
+
+      
+    {/* VIDEO */}
+     {!showOrders && (
+  <div className="video-banner">
+    <video autoPlay muted loop playsInline>
+      <source src={spidervid} type="video/mp4" />
+    </video>
+  </div>
+)}
+  
+
       {/* PRODUCTS */}
-      <main className="container">
-        {loading && <p>Loading...</p>}
+    
+     {!showOrders && (
+  <main className="container">
+    {loading && <p>Loading...</p>}
 
-        <div className="products">
-          {backendProducts.map(product => (
-            <div key={product.id} className="card">
-              <img
-  src={`https://onebackend-xlo8.onrender.com/images/${product.image}`}
-  alt={product.name}
-/>
-              <h3>{product.name}</h3>
-              <p>${product.price}</p>
 
-              <button
-                onClick={(e) => {
-                  const img = e.target.closest(".card").querySelector("img");
-                  addToCart(product, img);
-                }}
-              >
-                Add to Cart
-              </button>
-            </div>
-          ))}
+
+    <div className="products">
+      {backendProducts.map(product => (
+        <div key={product.id} className="card">
+          <img
+            src={`https://onebackend-xlo8.onrender.com/images/${product.image}`}
+            alt={product.name}
+          />
+          <h3>{product.name}</h3>
+          <p>${product.price}</p>
+
+          <button
+            onClick={(e) => {
+              const img = e.target.closest(".card").querySelector("img");
+              addToCart(product, img);
+            }}
+          >
+            Add to Cart
+          </button>
         </div>
-      </main>
+      ))}
+    </div>
+  </main>
+)}
+      
 
     </div>
   );
