@@ -17,7 +17,7 @@ dotenv.config({ path: "./.env" });
 const app = express();
 
 app.use(cors({
-  origin: 'https://rendure.store ', // Replace with your actual front-end domain
+  origin: 'https://rendure.store', // Replace with your actual front-end domain
   methods: ['GET', 'POST'], // Adjust methods as needed
   credentials: true // If you’re using cookies or authentication tokens
 }));
@@ -111,6 +111,9 @@ app.get("/api/orders", async (req, res) => {
   res.json(orders);
 });
 
+
+app.get('/test-image', (req, res) => { res.sendFile(path.join(__dirname, 'images', 'sp2.jpg')); });
+
 // ✅ Start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
@@ -133,3 +136,4 @@ const products = [
 app.get("/api/products", (req, res) => {
   res.json(products);
 });
+
