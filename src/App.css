@@ -1156,3 +1156,111 @@ body {
   background: #ff3c3c;
   border-color: #ff3c3c;
 }
+/* === CHECKOUT PAGE === */
+.checkout-page {
+  min-height: 100vh;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* === BOX === */
+.checkout-form {
+  width: 100%;
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 30px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: white;
+}
+
+/* === TITLE === */
+.checkout-page h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* === INPUTS === */
+.checkout-form input,
+.checkout-form select {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.checkout-form input::placeholder {
+  color: #aaa;
+}
+
+.checkout-form input:focus,
+.checkout-form select:focus {
+  background: rgba(255,255,255,0.15);
+}
+
+/* === ORDER SUMMARY === */
+.checkout-form h3 {
+  margin-top: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 5px;
+}
+
+.checkout-form div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+/* === TOTAL === */
+.checkout-form p {
+  font-weight: bold;
+  font-size: 16px;
+  text-align: right;
+}
+
+/* === BUTTONS === */
+.checkout-form button {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* Place Order */
+.checkout-form button[type="submit"] {
+  background: #22c55e;
+  color: white;
+}
+
+.checkout-form button[type="submit"]:hover {
+  background: #16a34a;
+}
+
+/* Cancel */
+.checkout-form button[type="button"] {
+  background: #ef4444;
+  color: white;
+}
+
+.checkout-form button[type="button"]:hover {
+  background: #dc2626;
+}
+
+/* Disabled */
+.checkout-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
