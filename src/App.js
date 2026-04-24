@@ -5,12 +5,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingBag } from "@fortawesome/free-solid-svg-icons";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
+import { getData } from 'country-list';
 
+const countries = getData(); // This gives you an array of country objects
 
 function MyOrders({ API_URL }) {
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-
+  
   const userId = localStorage.getItem("userId");
 
  useEffect(() => {
@@ -80,7 +82,7 @@ export default function StoreStarter() {
 
     const [showAuth, setShowAuth] = useState(false);
  const [isLogin, setIsLogin] = useState(true);
-
+ const [showCheckoutPage, setShowCheckoutPage] = useState(false);
 
 
 
@@ -421,7 +423,8 @@ const [authData, setAuthData] = useState({
   }
 
   setIsCartOpen(false);
-  setShowCheckout(true);
+  
+  setShowCheckoutPage(true);
 }}
           >
             Checkout
@@ -481,62 +484,60 @@ const [authData, setAuthData] = useState({
       {/* CHECKOUT */}
 
 
-      {showCheckout && (
-        <div className="checkout-modal">
-          <div className="checkout-box">
-            <h2>Checkout</h2>
-            
-            <form className="checkout-form" onSubmit={handlePlaceOrder}>
-              {["name","email","phone","country","city","address"].map(field => (
-                <input
-                  key={field}
-                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                  required
-                  onChange={e =>
-                    setCheckoutData({ ...checkoutData, [field]: e.target.value })
-                  }
-                />
-              ))}   
+      {showCheckoutPage && (
+  <div className="checkout-page">
+    <h2>Checkout</h2>
 
-              <h3>Order Summary</h3>
+    <form className="checkout-form" onSubmit={handlePlaceOrder}>
+      {["name","email","phone","city","address"].map(field => (
+        <input
+          key={field}
+          placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+          required
+          onChange={e =>
+            setCheckoutData({ ...checkoutData, [field]: e.target.value })
+          }
+        />
+      ))}
 
-              {cart.map(item => (
-                <div key={item.id} className="summary-item">
-                  <span>{item.name} x {item.qty}</span>
-                  <span>${item.price * item.qty}</span>
-                </div>
-              ))}
+      <select
+        required
+        onChange={(e) =>
+          setCheckoutData({ ...checkoutData, country: e.target.value })
+        }
+      >
+        <option value="">Select a country</option>
+        <option value="FR">France</option>
+        <option value="DE">Germany</option>
+        <option value="IT">Italy</option>
+        <option value="ES">Spain</option>
+        <option value="NL">Netherlands</option>
+      </select>
 
-              
-              
+      <h3>Order Summary</h3>
 
-              <div className="summary-total">
-                <strong>Total:</strong>
-                <strong>${subtotal.toFixed(2)}</strong>
-              </div>
-                
-
-            <button
-  className="place-order-btn"
-  type="button"
-  onClick={handlePlaceOrder}
-  disabled={isPlacingOrder}
->
-                {isPlacingOrder ? "Placing..." : "Place Order"}
-              </button>
-
-              <button
-                type="button"
-                className="back-btn"
-                onClick={() => setShowCheckout(false)}
-              >
-                Cancel
-              </button>
-            </form>
-          </div>
+      {cart.map(item => (
+        <div key={item.id}>
+          {item.name} x {item.qty}
         </div>
-      )}
+      ))}
 
+      <p>Total: ${subtotal.toFixed(2)}</p>
+
+      <button type="submit" disabled={isPlacingOrder}>
+        {isPlacingOrder ? "Placing..." : "Place Order"}
+      </button>
+
+      <button type="button" onClick={() => setShowCheckoutPage(false)}>
+        Cancel
+      </button>
+    </form>
+  </div>
+)}
+     
+     
+     
+      
       {/* SUCCESS */}
       {orderSuccess && (
         <div className="checkout-modal">
@@ -552,7 +553,7 @@ const [authData, setAuthData] = useState({
 
       
     {/* VIDEO */}
-     {!showOrders && (
+   {!showOrders && !showCheckoutPage && (
   <div className="video-banner">
     <video autoPlay muted loop playsInline>
       <source src={spidervid} type="video/mp4" />
@@ -563,7 +564,7 @@ const [authData, setAuthData] = useState({
 
       {/* PRODUCTS */}
     
-     {!showOrders && (
+     {!showOrders && !showCheckoutPage && (
   <main className="container">
     {loading && <p>Loading...</p>}
 
