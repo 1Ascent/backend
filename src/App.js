@@ -18,9 +18,16 @@ function MyOrders({ API_URL }) {
 }, []);
 
   useEffect(() => {
-    if (!userId) return;
+    const token = localStorage.getItem("token");
+if (!token) return;
+    const token = localStorage.getItem("token");
 
-    fetch(`${API_URL}/api/my-orders/${userId}`)
+fetch(`${API_URL}/api/my-orders`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+})
+    
       .then(res => res.json())
       .then(data => {
         setOrders(data);
@@ -32,9 +39,11 @@ function MyOrders({ API_URL }) {
       });
   }, [API_URL, userId]);
 
-  if (!userId) {
-    return <p style={{ color: "white", padding: "20px" }}>Please login to see your orders</p>;
-  }
+   const token = localStorage.getItem("token");
+
+if (!token) {
+  return <p style={{ color: "white", padding: "20px" }}>Please login to see your orders</p>;
+}
 
   return (
     <div className="orders-page">
@@ -269,12 +278,13 @@ const [authData, setAuthData] = useState({
 
 
 
-   async function handlePlaceOrder(e) {
+   
+async function handlePlaceOrder(e) {
   e.preventDefault();
 
-  const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
 
-  if (!userId) {
+  if (!token) {
     alert("Please login first");
     setShowAuth(true);
     return;
@@ -302,9 +312,11 @@ const [authData, setAuthData] = useState({
   try {
     const res = await fetch(`${API_URL}/api/orders`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // ✅ ONLY THIS
+      },
       body: JSON.stringify({
-        userId,
         customer: checkoutData,
         items: cart,
         total: subtotal,
@@ -328,7 +340,6 @@ const [authData, setAuthData] = useState({
     setIsPlacingOrder(false);
   }
 }
-
 
 
   return (
@@ -416,9 +427,9 @@ const [authData, setAuthData] = useState({
           <button
             className="checkout-btn"
           onClick={() => {
-  const userId = localStorage.getItem("userId");
+         const token = localStorage.getItem("token");
 
-  if (!userId) {
+if (!token) {
     alert("Login first");
     setShowAuth(true);
     return;
@@ -488,6 +499,7 @@ const [authData, setAuthData] = useState({
 
       {page === "checkout" && (
   <div className="checkout-page">
+    
     <h2>Checkout</h2>
 
     <form className="checkout-form" onSubmit={handlePlaceOrder}>

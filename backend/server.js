@@ -7,6 +7,29 @@ import jwt from "jsonwebtoken";
 import path from "path";
 import { fileURLToPath } from "url";
 
+
+
+
+
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ error: "No token" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.id;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+
 // ✅ Fix __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,20 +82,21 @@ const orderSchema = new mongoose.Schema({
 const Order = mongoose.model("Order", orderSchema);
 
 // ✅ AUTH ROUTES
-app.post("/api/register", async (req, res) => {
+app.post("/api/orders", authMiddleware, async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const newOrder = new Order({
+      userId: req.userId, // ✅ from token
+      customer: req.body.customer,
+      items: req.body.items,
+      total: req.body.total,
+    });
 
-    const hashed = await bcrypt.hash(password, 10);
+    const savedOrder = await newOrder.save();
 
-    const user = new User({ name, email, password: hashed });
-    await user.save();
-
-    res.json({ success: true });
-} catch (err) {
-  console.error("Register error:", err);
-  res.status(500).json({ error: err.message });
-}
+    res.json({ success: true, orderId: savedOrder._id });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save order" });
+  }
 });
 
 app.post("/api/login", async (req, res) => {
@@ -84,34 +108,15 @@ app.post("/api/login", async (req, res) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return res.status(400).json({ error: "Wrong password" });
 
-  const token = jwt.sign({ id: user._id }, "SECRET_KEY");
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
   res.json({ token, userId: user._id });
 });
 
-// ✅ ORDER ROUTE
-app.post("/api/orders", async (req, res) => {
-  try {
-    console.log("📥 Order:", req.body);
 
-    const newOrder = new Order({
-      userId: req.body.userId, // ✅ link user
-      customer: req.body.customer,
-      items: req.body.items,
-      total: req.body.total,
-    });
-
-    const savedOrder = await newOrder.save();
-
-    res.json({ success: true, orderId: savedOrder._id });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to save order" });
-  }
-});
 
 // ✅ GET ORDERS
-app.get("/api/orders", async (req, res) => {
+app.get("/api/orders",authMiddleware, async (req, res) => {
   const orders = await Order.find();
   res.json(orders);
 });
@@ -142,11 +147,7 @@ app.get("/api/products", (req, res) => {
   res.json(products);
 });
 
-app.get("/api/my-orders/:userId", async (req, res) => {
-  try {
-    const orders = await Order.find({ userId: req.params.userId });
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch orders" });
-  }
-});
+app.get("/api/my-orders", authMiddleware, async (req, res) => {
+  const orders = await Order.find({ userId: req.userId });
+  res.json(orders);
+})
