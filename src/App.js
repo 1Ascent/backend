@@ -5,9 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingBag } from "@fortawesome/free-solid-svg-icons";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
-import { getData } from 'country-list';
 
-const countries = getData(); // This gives you an array of country objects
 
 function MyOrders({ API_URL }) {
   const [orders, setOrders] = useState([]);
@@ -70,19 +68,18 @@ function MyOrders({ API_URL }) {
 
 export default function StoreStarter() {
    
-  const [showOrders, setShowOrders] = useState(false);
+  const [page, setPage] = useState("store");
   const [backendProducts, setBackendProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hideNav, setHideNav] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderId, setOrderId] = useState(null);
 
     const [showAuth, setShowAuth] = useState(false);
  const [isLogin, setIsLogin] = useState(true);
- const [showCheckoutPage, setShowCheckoutPage] = useState(false);
+ 
 
 
 
@@ -155,7 +152,7 @@ const [authData, setAuthData] = useState({
       city: "",
       address: "",
     });
-    setShowCheckout(false);
+    setPage("store");
     setOrderSuccess(false);
     setOrderId(null);
   }
@@ -200,6 +197,12 @@ const [authData, setAuthData] = useState({
       setLoading(false);
     });
 }, []);
+
+
+  useEffect(() => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}, [page]);
+
 
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.qty,
@@ -314,7 +317,7 @@ const [authData, setAuthData] = useState({
 
     setOrderId(data.orderId);
     setOrderSuccess(true);
-    setShowCheckout(false);
+    setPage("store");
     setCart([]);
     setIsCartOpen(false);
 
@@ -360,8 +363,8 @@ const [authData, setAuthData] = useState({
 )}
 
 
-  <button onClick={() => setShowOrders(!showOrders)}>
-  {showOrders ? "Back to Store" : "My Orders"}
+ <button onClick={() => setPage(page === "orders" ? "store" : "orders")}>
+  {page === "orders" ? "Back to Store" : "My Orders"}
 </button>
   
 
@@ -377,12 +380,11 @@ const [authData, setAuthData] = useState({
   </div>
 </header>
 
- {showOrders && (
+ {page === "orders" && (
   <div className="fade-page">
     <MyOrders API_URL={API_URL} />
   </div>
 )}
-
 
 
       {/* CART */}
@@ -424,7 +426,7 @@ const [authData, setAuthData] = useState({
 
   setIsCartOpen(false);
   
-  setShowCheckoutPage(true);
+ setPage("checkout");
 }}
           >
             Checkout
@@ -484,7 +486,7 @@ const [authData, setAuthData] = useState({
       {/* CHECKOUT */}
 
 
-      {showCheckoutPage && (
+      {page === "checkout" && (
   <div className="checkout-page">
     <h2>Checkout</h2>
 
@@ -528,7 +530,7 @@ const [authData, setAuthData] = useState({
         {isPlacingOrder ? "Placing..." : "Place Order"}
       </button>
 
-      <button type="button" onClick={() => setShowCheckoutPage(false)}>
+      <button type="button" onClick={() => setPage("store")}>
         Cancel
       </button>
     </form>
@@ -553,7 +555,7 @@ const [authData, setAuthData] = useState({
 
       
     {/* VIDEO */}
-   {!showOrders && !showCheckoutPage && (
+  {page === "store" && (
   <div className="video-banner">
     <video autoPlay muted loop playsInline>
       <source src={spidervid} type="video/mp4" />
@@ -564,7 +566,7 @@ const [authData, setAuthData] = useState({
 
       {/* PRODUCTS */}
     
-     {!showOrders && !showCheckoutPage && (
+    {page === "store" && (
   <main className="container">
     {loading && <p>Loading...</p>}
 
