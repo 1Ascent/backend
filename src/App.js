@@ -17,29 +17,27 @@ function MyOrders({ API_URL }) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-if (!token) return;
-    const token = localStorage.getItem("token");
+ useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
 
-fetch(`${API_URL}/api/my-orders`, {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-})
-    
-      .then(res => res.json())
-      .then(data => {
-        setOrders(data);
-        setLoadingOrders(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoadingOrders(false);
-      });
-  }, [API_URL, userId]);
+  fetch(`${API_URL}/api/my-orders`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then(res => res.json())
+    .then(data => {
+      setOrders(data);
+      setLoadingOrders(false);
+    })
+    .catch(err => {
+      console.error(err);
+      setLoadingOrders(false);
+    });
+}, [API_URL]);
 
-   const token = localStorage.getItem("token");
+const token = localStorage.getItem("token");
 
 if (!token) {
   return <p style={{ color: "white", padding: "20px" }}>Please login to see your orders</p>;
